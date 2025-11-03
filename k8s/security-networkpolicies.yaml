@@ -1,0 +1,305 @@
+# Network Policies pour securite reseau
+# Defi Expert 4: Implementer des Network Policies de securite
+
+# Policy 1: Deny all traffic par defaut (principe de moindre privilege)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: esme-tp-julesmlrd
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# Policy 2: Autoriser trafic vers esme-app depuis Ingress uniquement
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-esme-app
+  namespace: esme-tp-julesmlrd
+spec:
+  podSelector:
+    matchLabels:
+      app: esme-devops-app
+  policyTypes:
+  - Ingress
+  ingress:
+  # Autoriser Ingress Controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+  # Autoriser le service interne
+  - from:
+    - podSelector:
+        matchLabels:
+          app: esme-devops-app
+    ports:
+    - protocol: TCP
+      port: 3000
+  # Autoriser Prometheus pour scraping
+  - from:
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 3000
+---
+# Policy 3: Autoriser esme-app a communiquer avec services externes necessaires
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-esme-app-egress
+  namespace: esme-tp-julesmlrd
+spec:
+  podSelector:
+    matchLabels:
+      app: esme-devops-app
+  policyTypes:
+  - Egress
+  egress:
+  # Autoriser DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    - podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+  # Autoriser acces Internet pour updates (si necessaire)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+---
+# Policy 4: Autoriser Prometheus a scraper les metriques
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scraping
+  namespace: esme-tp-julesmlrd
+spec:
+  podSelector:
+    matchLabels:
+      app: prometheus
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Autoriser acces web UI depuis n'importe ou
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 9090
+  egress:
+  # Autoriser scraping de tous les pods
+  - to:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 3000
+    - protocol: TCP
+      port: 9090
+    - protocol: TCP
+      port: 9093
+  # Autoriser DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+---
+# Policy 5: Autoriser Grafana a acceder a Prometheus
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-grafana-to-prometheus
+  namespace: esme-tp-julesmlrd
+spec:
+  podSelector:
+    matchLabels:
+      app: grafana
+  policyTypes:
+  - Egress
+  - Ingress
+  ingress:
+  # Autoriser acces web UI
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 3000
+  egress:
+  # Autoriser acces a Prometheus
+  - to:
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 9090
+  # Autoriser DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+---
+# Policy 6: Autoriser AlertManager
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-alertmanager
+  namespace: esme-tp-julesmlrd
+spec:
+  podSelector:
+    matchLabels:
+      app: alertmanager
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Recevoir alertes de Prometheus
+  - from:
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 9093
+  egress:
+  # Envoyer webhooks vers esme-app
+  - to:
+    - podSelector:
+        matchLabels:
+          app: esme-devops-app
+    ports:
+    - protocol: TCP
+      port: 3000
+  # Autoriser DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+---
+# Policy 7: Autoriser Elasticsearch et Kibana
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-elk-stack
+  namespace: esme-tp-julesmlrd
+spec:
+  podSelector:
+    matchLabels:
+      app: elasticsearch
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Recevoir logs de Fluentd
+  - from:
+    - podSelector:
+        matchLabels:
+          app: fluentd
+    ports:
+    - protocol: TCP
+      port: 9200
+    - protocol: TCP
+      port: 9300
+  # Kibana access
+  - from:
+    - podSelector:
+        matchLabels:
+          app: kibana
+    ports:
+    - protocol: TCP
+      port: 9200
+---
+# Policy 8: Autoriser Fluentd a collecter logs
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-fluentd-logging
+  namespace: esme-tp-julesmlrd
+spec:
+  podSelector:
+    matchLabels:
+      app: fluentd
+  policyTypes:
+  - Egress
+  egress:
+  # Envoyer logs vers Elasticsearch
+  - to:
+    - podSelector:
+        matchLabels:
+          app: elasticsearch
+    ports:
+    - protocol: TCP
+      port: 9200
+  # Autoriser DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+---
+# Policy 9: Autoriser Kibana UI
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kibana-ui
+  namespace: esme-tp-julesmlrd
+spec:
+  podSelector:
+    matchLabels:
+      app: kibana
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Autoriser acces externe
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5601
+  egress:
+  # Acceder a Elasticsearch
+  - to:
+    - podSelector:
+        matchLabels:
+          app: elasticsearch
+    ports:
+    - protocol: TCP
+      port: 9200
+  # Autoriser DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+

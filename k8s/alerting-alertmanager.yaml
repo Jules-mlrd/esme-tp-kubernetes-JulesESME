@@ -1,0 +1,145 @@
+# AlertManager pour alertes automatisees
+# Defi Expert 2: Alertes automatisees
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: esme-tp-julesmlrd
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+    
+    route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      receiver: 'esme-devops-team'
+    
+    receivers:
+    - name: 'esme-devops-team'
+      webhook_configs:
+      - url: 'http://esme-app-clusterip/webhook-alerts'
+        send_resolved: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: esme-tp-julesmlrd
+data:
+  alerts.yml: |
+    groups:
+    - name: esme-app-alerts
+      interval: 30s
+      rules:
+      - alert: HighPodMemoryUsage
+        expr: container_memory_usage_bytes{pod=~"esme-app-.*"} / container_spec_memory_limit_bytes{pod=~"esme-app-.*"} > 0.8
+        for: 2m
+        labels:
+          severity: warning
+          team: devops
+        annotations:
+          summary: "Pod {{ $labels.pod }} utilise plus de 80% de memoire"
+          description: "Le pod {{ $labels.pod }} utilise {{ $value | humanizePercentage }} de sa memoire limite"
+      
+      - alert: HighPodCPUUsage
+        expr: rate(container_cpu_usage_seconds_total{pod=~"esme-app-.*"}[5m]) / container_spec_cpu_quota{pod=~"esme-app-.*"} > 0.8
+        for: 2m
+        labels:
+          severity: warning
+          team: devops
+        annotations:
+          summary: "Pod {{ $labels.pod }} utilise plus de 80% CPU"
+          description: "Le pod {{ $labels.pod }} utilise {{ $value | humanizePercentage }} de son CPU limite"
+      
+      - alert: PodRestartingFrequently
+        expr: rate(kube_pod_container_status_restarts_total{pod=~"esme-app-.*"}[1h]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          team: devops
+        annotations:
+          summary: "Pod {{ $labels.pod }} redémarre frequemment"
+          description: "Le pod {{ $labels.pod }} a redémarre {{ $value }} fois dans la derniere heure"
+      
+      - alert: DeploymentReplicasMismatch
+        expr: kube_deployment_spec_replicas{deployment="esme-app"} != kube_deployment_status_replicas_available{deployment="esme-app"}
+        for: 5m
+        labels:
+          severity: warning
+          team: devops
+        annotations:
+          summary: "Deployment esme-app a un nombre de replicas incorrect"
+          description: "Attendu: {{ $labels.spec_replicas }}, Actuel: {{ $value }}"
+      
+      - alert: ServiceEndpointDown
+        expr: kube_endpoint_address_available{endpoint="esme-app-clusterip"} < 1
+        for: 2m
+        labels:
+          severity: critical
+          team: devops
+        annotations:
+          summary: "Service esme-app-clusterip n'a aucun endpoint disponible"
+          description: "Le service ne peut pas router le trafic, aucun pod healthy"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: esme-tp-julesmlrd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager:v0.26.0
+        args:
+        - '--config.file=/etc/alertmanager/alertmanager.yml'
+        - '--storage.path=/alertmanager'
+        ports:
+        - containerPort: 9093
+          name: http
+        volumeMounts:
+        - name: alertmanager-config
+          mountPath: /etc/alertmanager
+        - name: alertmanager-storage
+          mountPath: /alertmanager
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      volumes:
+      - name: alertmanager-config
+        configMap:
+          name: alertmanager-config
+      - name: alertmanager-storage
+        emptyDir:
+          sizeLimit: "500Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: esme-tp-julesmlrd
+spec:
+  type: ClusterIP
+  selector:
+    app: alertmanager
+  ports:
+  - name: http
+    port: 9093
+    targetPort: 9093
+
