@@ -157,12 +157,12 @@ docker rm esme-app-test
    - Authentification reussie
 
 2. **Tag de l'image pour Docker Hub**
-   - Tag v1.0: VOTRE_USERNAME/esme-app:v1.0
-   - Tag latest: VOTRE_USERNAME/esme-app:latest
+   - Tag v1.0: julesmlrd/esme-app:v1.0
+   - Tag latest: julesmlrd/esme-app:latest
 
 3. **Publication sur Docker Hub**
    - Image poussee avec succes
-   - URL publique: https://hub.docker.com/r/VOTRE_USERNAME/esme-app
+   - URL publique: https://hub.docker.com/r/julesmlrd/esme-app
 
 4. **Creation du tag Git**
    - Tag v1.0.0 cree et pousse
@@ -179,15 +179,15 @@ docker rm esme-app-test
 docker login
 
 # Tag de l'image
-docker tag esme-app:v1.0 VOTRE_USERNAME/esme-app:v1.0
-docker tag esme-app:v1.0 VOTRE_USERNAME/esme-app:latest
+docker tag esme-app:v1.0 julesmlrd/esme-app:v1.0
+docker tag esme-app:v1.0 julesmlrd/esme-app:latest
 
 # Push vers Docker Hub
-docker push VOTRE_USERNAME/esme-app:v1.0
-docker push VOTRE_USERNAME/esme-app:latest
+docker push julesmlrd/esme-app:v1.0
+docker push julesmlrd/esme-app:latest
 
 # Verification sur Docker Hub
-docker search VOTRE_USERNAME/esme-app
+docker search julesmlrd/esme-app
 
 # Creation du tag Git
 git add README.md

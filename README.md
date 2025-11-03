@@ -14,17 +14,17 @@ Application web simple affichant "Hello ESME DevOps 2025!" avec plusieurs endpoi
 L'image Docker est disponible publiquement sur Docker Hub :
 
 ```bash
-docker pull VOTRE_USERNAME/esme-app:v1.0
+docker pull julesmlrd/esme-app:v1.0
 ```
 
-**URL Docker Hub**: https://hub.docker.com/r/VOTRE_USERNAME/esme-app
+**URL Docker Hub**: https://hub.docker.com/r/julesmlrd/esme-app
 
 ## Utilisation
 
 ### Lancer l'application en local
 
 ```bash
-docker run -d -p 3000:3000 VOTRE_USERNAME/esme-app:v1.0
+docker run -d -p 3000:3000 julesmlrd/esme-app:v1.0
 ```
 
 Puis accedez a http://localhost:3000
