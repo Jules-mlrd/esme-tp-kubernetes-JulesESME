@@ -28,11 +28,20 @@ spec:
           protocol: TCP
         env:
         - name: APP_ENV
-          value: "production"
+          valueFrom:
+            configMapKeyRef:
+              name: esme-app-config
+              key: APP_ENV
         - name: LOG_LEVEL
-          value: "info"
+          valueFrom:
+            configMapKeyRef:
+              name: esme-app-config
+              key: LOG_LEVEL
         - name: MESSAGE
-          value: "Deploye par Jules ESME sur Kubernetes"
+          valueFrom:
+            configMapKeyRef:
+              name: esme-app-config
+              key: MESSAGE
         resources:
           requests:
             cpu: 100m

@@ -484,6 +484,112 @@ curl http://20.56.194.76/info
 
 ---
 
+### [OK] Tache 2.4 - ConfigMap et variables d'environnement (3 points)
+
+**Objectif**: Creer un ConfigMap pour gerer les variables d'environnement et mettre a jour le deploiement pour les utiliser.
+
+#### Etapes realisees:
+
+1. **Creation du ConfigMap**
+   - Nom: esme-app-config
+   - Variables configurees:
+     - APP_ENV=production
+     - LOG_LEVEL=info
+     - MESSAGE=Deploye par Jules Milard - ESME 2025
+   - Fichier: k8s/configmap.yaml
+
+2. **Mise a jour du deploiement**
+   - Variables env en dur remplacees par references au ConfigMap
+   - Utilisation de valueFrom.configMapKeyRef
+   - Fichier: k8s/deployment.yaml (mis a jour)
+
+3. **Redeploiement**
+   - Rolling update effectue automatiquement
+   - 3 nouveaux pods crees avec les variables du ConfigMap
+   - Anciens pods termines proprement
+
+4. **Verification**
+   - ConfigMap cree et fonctionnel
+   - Variables prises en compte dans l'application
+   - Test via /info : variables correctement affichees
+
+#### Fichiers crees/modifies:
+
+**k8s/configmap.yaml:**
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: esme-app-config
+  namespace: esme-tp-julesmlrd
+data:
+  APP_ENV: "production"
+  LOG_LEVEL: "info"
+  MESSAGE: "Deploye par Jules Milard - ESME 2025"
+```
+
+**k8s/deployment.yaml (extrait modifie):**
+```yaml
+env:
+- name: APP_ENV
+  valueFrom:
+    configMapKeyRef:
+      name: esme-app-config
+      key: APP_ENV
+- name: LOG_LEVEL
+  valueFrom:
+    configMapKeyRef:
+      name: esme-app-config
+      key: LOG_LEVEL
+- name: MESSAGE
+  valueFrom:
+    configMapKeyRef:
+      name: esme-app-config
+      key: MESSAGE
+```
+
+#### Commandes executees:
+
+```powershell
+# Appliquer le ConfigMap
+kubectl apply -f k8s/configmap.yaml
+
+# Mettre a jour le deploiement
+kubectl apply -f k8s/deployment.yaml
+
+# Verifier les pods (rolling update)
+kubectl get pods -n esme-tp-julesmlrd
+
+# Verifier le ConfigMap
+kubectl describe configmap esme-app-config -n esme-tp-julesmlrd
+
+# Tester les variables
+curl http://20.56.194.76/info
+```
+
+#### Resultats:
+
+- **ConfigMap cree**: esme-app-config avec 3 variables
+- **Deploiement mis a jour**: Rolling update reussi (3/3 pods)
+- **Variables fonctionnelles**:
+  - environment: "production"
+  - logLevel: "info"
+  - message: "Deploye par Jules Milard - ESME 2025"
+- **Nouveau ReplicaSet**: esme-app-6f5c66f9d4
+
+#### Tag Git v1.1.0:
+
+Version incluant la gestion des variables d'environnement via ConfigMap.
+
+#### Screenshots:
+- [ ] Screenshot 1: kubectl apply configmap
+- [ ] Screenshot 2: kubectl get pods (rolling update)
+- [ ] Screenshot 3: kubectl describe configmap
+- [ ] Screenshot 4: curl /info avec nouvelles variables
+- [ ] Screenshot 5: Contenu des fichiers YAML
+
+---
+
 ## Partie 3 - Architecture avancee et troubleshooting (6 points)
 
 A completer...
@@ -493,9 +599,9 @@ A completer...
 ## Progression globale
 
 - **Partie 1**: 6/6 points (COMPLETEE!)
-- **Partie 2**: 5/8 points (en cours)
+- **Partie 2**: 8/8 points (COMPLETEE!)
 - **Partie 3**: 0/6 points
-- **Total technique**: 11/20 points
+- **Total technique**: 14/20 points
 
 ---
 
