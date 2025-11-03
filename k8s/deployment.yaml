@@ -5,7 +5,7 @@ metadata:
   namespace: esme-tp-julesmlrd
   labels:
     app: esme-devops-app
-    version: v1.0.0
+    version: v2.0.0
     environment: production
 spec:
   replicas: 3
@@ -16,11 +16,11 @@ spec:
     metadata:
       labels:
         app: esme-devops-app
-        version: v1.0.0
+        version: v2.0.0
     spec:
       containers:
       - name: esme-app
-        image: julesmlrd/esme-app:v1.0
+        image: julesmlrd/esme-app:v2.0
         imagePullPolicy: Always
         ports:
         - containerPort: 3000

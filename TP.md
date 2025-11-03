@@ -699,12 +699,155 @@ Pour tester avec un vrai domaine local, ajouter dans C:\Windows\System32\drivers
 
 ---
 
+### [OK] Tache 3.2 - Scaling et mise a jour (4 points)
+
+**Objectif**: Implementer un HorizontalPodAutoscaler pour l'autoscaling et effectuer une mise a jour rolling vers la version 2.0.
+
+#### Partie A: HorizontalPodAutoscaler (HPA)
+
+**Configuration:**
+- Min replicas: 2
+- Max replicas: 10
+- Target CPU: 70%
+
+**Etapes realisees:**
+
+1. **Creation du HPA**
+   - Nom: esme-app-hpa
+   - Metric: CPU utilization
+   - Target: 70%
+   - Fichier: k8s/hpa.yaml
+
+2. **Application du HPA**
+   - HPA cree et actif
+   - Surveillance automatique du deploiement
+
+#### Partie B: Rolling Update vers v2.0
+
+**Modifications de l'application:**
+
+1. **Mise a jour app.js**
+   - Nouveau titre avec emojis
+   - Version: 2.0.0 dans tous les endpoints
+   - Ajout section "Nouvelles fonctionnalites"
+   - Nouveau champ "features" dans /info
+
+2. **Mise a jour package.json**
+   - Version: 2.0.0
+
+3. **Build et push Docker**
+   - Image: julesmlrd/esme-app:v2.0
+   - Tag latest mis a jour
+   - Poussee sur Docker Hub
+
+4. **Mise a jour du deploiement**
+   - Image: julesmlrd/esme-app:v2.0
+   - Labels version: v2.0.0
+   - Rolling update automatique
+
+5. **Rolling update execute**
+   - Strategie: RollingUpdate
+   - Nouveau ReplicaSet: esme-app-5f47fd8574
+   - 3 nouveaux pods crees progressivement
+   - Anciens pods supprimes sans downtime
+
+#### Fichiers crees/modifies:
+
+**k8s/hpa.yaml:**
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: esme-app-hpa
+  namespace: esme-tp-julesmlrd
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: esme-app
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+```
+
+**Modifications app.js:**
+- Titre: "🚀 Hello ESME DevOps 2025 - Version 2.0! 🚀"
+- Version 2.0.0 dans tous les endpoints
+- Nouvelles features documentees
+
+**Modifications package.json:**
+- Version: 2.0.0
+
+#### Commandes executees:
+
+```powershell
+# Creer et appliquer le HPA
+kubectl apply -f k8s/hpa.yaml
+kubectl get hpa -n esme-tp-julesmlrd
+
+# Build de la nouvelle version
+docker build -t julesmlrd/esme-app:v2.0 .
+docker tag julesmlrd/esme-app:v2.0 julesmlrd/esme-app:latest
+
+# Push sur Docker Hub
+docker push julesmlrd/esme-app:v2.0
+docker push julesmlrd/esme-app:latest
+
+# Mise a jour du deploiement (rolling update)
+kubectl apply -f k8s/deployment.yaml
+
+# Surveiller le rolling update
+kubectl get pods -n esme-tp-julesmlrd
+
+# Tester la nouvelle version
+curl http://20.56.194.76/info
+```
+
+#### Resultats:
+
+**HPA:**
+- HPA cree et actif
+- Min: 2, Max: 10, Target CPU: 70%
+- Surveillance du deploiement esme-app
+
+**Rolling Update:**
+- Nouveau ReplicaSet: esme-app-5f47fd8574
+- 3 pods v2.0 deployes avec succes
+- Anciens pods v1.0 supprimes automatiquement
+- Zero downtime pendant la mise a jour
+
+**Version 2.0.0:**
+- Application accessible et fonctionnelle
+- Endpoint /info retourne: version=2.0.0
+- Nouvelles features visibles dans l'interface
+- Message personnalise via ConfigMap
+
+#### Tag Git v2.0.0:
+
+Version 2.0.0 incluant HPA et rolling update.
+
+#### Screenshots:
+- [ ] Screenshot 1: kubectl apply hpa.yaml
+- [ ] Screenshot 2: kubectl get hpa
+- [ ] Screenshot 3: kubectl get pods (rolling update en cours)
+- [ ] Screenshot 4: kubectl get pods (3 nouveaux pods v2.0)
+- [ ] Screenshot 5: curl /info (version 2.0.0)
+- [ ] Screenshot 6: Navigateur avec nouvelle interface v2.0
+
+---
+
 ## Progression globale
 
 - **Partie 1**: 6/6 points (COMPLETEE!)
 - **Partie 2**: 8/8 points (COMPLETEE!)
-- **Partie 3**: 2/6 points (en cours)
-- **Total technique**: 16/20 points
+- **Partie 3**: 6/6 points (COMPLETEE!)
+- **Total technique**: 20/20 points - TP TERMINE!
 
 ---
 
