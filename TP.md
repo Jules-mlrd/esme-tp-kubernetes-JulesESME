@@ -147,6 +147,65 @@ docker rm esme-app-test
 
 ---
 
+### [OK] Tache 1.4 - Registre Docker et versioning (2 points)
+
+**Objectif**: Publier l'image Docker sur Docker Hub et versionner le projet avec Git tags.
+
+#### Etapes realisees:
+
+1. **Connexion a Docker Hub**
+   - Authentification reussie
+
+2. **Tag de l'image pour Docker Hub**
+   - Tag v1.0: VOTRE_USERNAME/esme-app:v1.0
+   - Tag latest: VOTRE_USERNAME/esme-app:latest
+
+3. **Publication sur Docker Hub**
+   - Image poussee avec succes
+   - URL publique: https://hub.docker.com/r/VOTRE_USERNAME/esme-app
+
+4. **Creation du tag Git**
+   - Tag v1.0.0 cree et pousse
+   - README.md ajoute avec documentation
+
+5. **Documentation**
+   - README.md avec instructions d'utilisation
+   - URL de l'image Docker documentee
+
+#### Commandes executees:
+
+```
+# Connexion Docker Hub
+docker login
+
+# Tag de l'image
+docker tag esme-app:v1.0 VOTRE_USERNAME/esme-app:v1.0
+docker tag esme-app:v1.0 VOTRE_USERNAME/esme-app:latest
+
+# Push vers Docker Hub
+docker push VOTRE_USERNAME/esme-app:v1.0
+docker push VOTRE_USERNAME/esme-app:latest
+
+# Verification sur Docker Hub
+docker search VOTRE_USERNAME/esme-app
+
+# Creation du tag Git
+git add README.md
+git commit -m "Tache 1.4: Ajout README.md et publication Docker Hub"
+git tag -a v1.0.0 -m "Version 1.0.0 - Premiere version stable"
+git push origin main
+git push origin v1.0.0
+```
+
+#### Screenshots:
+- [ ] Screenshot 1: docker login reussi
+- [ ] Screenshot 2: docker tag et docker push
+- [ ] Screenshot 3: Image visible sur Docker Hub
+- [ ] Screenshot 4: git tag v1.0.0 cree
+- [ ] Screenshot 5: README.md avec URL de l'image
+
+---
+
 ## Partie 2 - Deploiement et services Kubernetes (8 points)
 
 A completer...
@@ -161,10 +220,10 @@ A completer...
 
 ## Progression globale
 
-- **Partie 1**: 4/6 points (taches completees)
+- **Partie 1**: 6/6 points (COMPLETEE!)
 - **Partie 2**: 0/8 points
 - **Partie 3**: 0/6 points
-- **Total technique**: 4/20 points
+- **Total technique**: 6/20 points
 
 ---
 
