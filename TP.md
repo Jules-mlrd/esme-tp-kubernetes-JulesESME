@@ -259,6 +259,118 @@ kubectl cluster-info
 
 ---
 
+### [OK] Tache 2.2 - Namespace et ressources de base (2 points)
+
+**Objectif**: Creer un namespace dedie et deployer l'application avec 3 replicas, resources limits et probes de sante.
+
+#### Etapes realisees:
+
+1. **Creation du dossier k8s/**
+   - Dossier pour organiser les manifests Kubernetes
+
+2. **Creation du namespace**
+   - Nom: esme-tp-julesmlrd
+   - Labels: app, environment, student
+   - Fichier: k8s/namespace.yaml
+
+3. **Creation du deploiement**
+   - Image: julesmlrd/esme-app:v1.0
+   - Replicas: 3
+   - Resources: CPU 100m, Memory 128Mi (requests et limits)
+   - Liveness probe: /health (delay 10s, period 10s)
+   - Readiness probe: /health (delay 5s, period 5s)
+   - Variables d'environnement configurees
+   - Fichier: k8s/deployment.yaml
+
+#### Fichiers crees:
+
+**k8s/namespace.yaml:**
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: esme-tp-julesmlrd
+  labels:
+    app: esme-devops-app
+    environment: production
+    student: julesmlrd
+```
+
+**k8s/deployment.yaml:**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: esme-app
+  namespace: esme-tp-julesmlrd
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: esme-devops-app
+  template:
+    spec:
+      containers:
+      - name: esme-app
+        image: julesmlrd/esme-app:v1.0
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+```
+
+#### Commandes executees:
+
+```powershell
+# Creer le dossier k8s
+mkdir k8s
+
+# Appliquer le namespace
+kubectl apply -f k8s/namespace.yaml
+
+# Appliquer le deploiement
+kubectl apply -f k8s/deployment.yaml
+
+# Verifier le namespace
+kubectl get namespace esme-tp-julesmlrd
+
+# Verifier le deploiement
+kubectl get deployments -n esme-tp-julesmlrd
+
+# Verifier les pods
+kubectl get pods -n esme-tp-julesmlrd
+
+# Details du deploiement
+kubectl describe deployment esme-app -n esme-tp-julesmlrd
+```
+
+#### Resultats:
+
+- **Namespace**: esme-tp-julesmlrd - Active
+- **Deployment**: esme-app - 3/3 replicas Ready
+- **Pods**: 3 pods Running avec health checks reussis
+- **Resources**: CPU 100m et Memory 128Mi configures
+- **Probes**: Liveness et Readiness fonctionnelles
+
+#### Screenshots:
+- [ ] Screenshot 1: kubectl apply namespace et deployment
+- [ ] Screenshot 2: kubectl get pods (3 pods Running)
+- [ ] Screenshot 3: kubectl describe deployment
+- [ ] Screenshot 4: Contenu des fichiers YAML
+
+---
+
 ## Partie 3 - Architecture avancee et troubleshooting (6 points)
 
 A completer...
@@ -268,9 +380,9 @@ A completer...
 ## Progression globale
 
 - **Partie 1**: 6/6 points (COMPLETEE!)
-- **Partie 2**: 1/8 points (en cours)
+- **Partie 2**: 3/8 points (en cours)
 - **Partie 3**: 0/6 points
-- **Total technique**: 7/20 points
+- **Total technique**: 9/20 points
 
 ---
 

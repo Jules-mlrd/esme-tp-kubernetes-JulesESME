@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: esme-tp-julesmlrd
+  labels:
+    app: esme-devops-app
+    environment: production
+    student: julesmlrd
+
