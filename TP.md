@@ -208,7 +208,54 @@ git push origin v1.0.0
 
 ## Partie 2 - Deploiement et services Kubernetes (8 points)
 
-A completer...
+### [OK] Tache 2.1 - Connexion au cluster (1 point)
+
+**Objectif**: Configurer kubectl pour se connecter au cluster AKS fourni et verifier la connexion.
+
+#### Informations du cluster:
+- **Nom**: aks-JulesESME
+- **Resource Group**: rg-aks-JulesESME
+- **Region**: West Europe
+- **Noeuds**: 2
+
+#### Etapes realisees:
+
+1. **Configuration de kubectl**
+   - Fichier kubeconfig: JulesESME-kubeconfig.yaml
+   - Variable d'environnement KUBECONFIG definie
+
+2. **Verification de la connexion**
+   - Commande: kubectl get nodes
+   - Statut: Connecte avec succes
+
+3. **Liste des namespaces**
+   - Commande: kubectl get namespaces
+   - Namespaces disponibles listes
+
+#### Commandes executees:
+
+```powershell
+# Definir la variable d'environnement KUBECONFIG (PowerShell)
+$env:KUBECONFIG="JulesESME-kubeconfig.yaml"
+
+# Verifier la connexion au cluster
+kubectl get nodes
+
+# Lister les namespaces disponibles
+kubectl get namespaces
+
+# Verifier le contexte actuel
+kubectl config current-context
+
+# Voir les informations du cluster
+kubectl cluster-info
+```
+
+#### Screenshots:
+- [ ] Screenshot 1: Configuration KUBECONFIG
+- [ ] Screenshot 2: kubectl get nodes (noeuds Ready)
+- [ ] Screenshot 3: kubectl get namespaces
+- [ ] Screenshot 4: kubectl cluster-info
 
 ---
 
@@ -221,9 +268,9 @@ A completer...
 ## Progression globale
 
 - **Partie 1**: 6/6 points (COMPLETEE!)
-- **Partie 2**: 0/8 points
+- **Partie 2**: 1/8 points (en cours)
 - **Partie 3**: 0/6 points
-- **Total technique**: 6/20 points
+- **Total technique**: 7/20 points
 
 ---
 
