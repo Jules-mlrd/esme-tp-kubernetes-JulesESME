@@ -55,13 +55,14 @@ git push origin main
 #### Etapes realisees:
 
 1. **Creation du Dockerfile**
+
    - Image de base: node:18-alpine
    - Workdir: /app
    - Installation des dependances npm
    - Exposition du port 3000
    - Commande de demarrage: npm start
-
 2. **Creation du fichier .dockerignore**
+
    - Exclusion de node_modules
    - Exclusion des fichiers Git
    - Optimisation du build
@@ -79,13 +80,70 @@ CMD ["npm", "start"]
 ```
 
 #### Screenshots:
+
 - [ ] Screenshot 1: Contenu du Dockerfile
 - [ ] Screenshot 2: Contenu du .dockerignore
 - [ ] Screenshot 3: Commit Git avec les fichiers
 
 ---
 
-### [EN ATTENTE] Tache 1.3 - Build et test local (a venir)
+### [OK] Tache 1.3 - Construction et test de l'image (1 point)
+
+**Objectif**: Construire l'image Docker et tester l'application en local.
+
+#### Etapes realisees:
+
+1. **Construction de l'image Docker**
+   - Tag: esme-app:v1.0
+   - Commande: docker build -t esme-app:v1.0 .
+
+2. **Lancement du conteneur en local**
+   - Port mapping: 3000:3000
+   - Mode detache
+
+3. **Tests de l'application**
+   - Test de l'endpoint principal (/)
+   - Test de l'endpoint /health
+   - Test de l'endpoint /info
+
+#### Commandes executees:
+
+```
+# Construction de l'image
+docker build -t esme-app:v1.0 .
+
+# Verification de l'image
+docker images | grep esme-app
+
+# Lancement du conteneur
+docker run -d -p 3000:3000 --name esme-app-test esme-app:v1.0
+
+# Verification du conteneur
+docker ps
+
+# Test de l'endpoint principal
+curl http://localhost:3000
+
+# Test de l'endpoint de sante
+curl http://localhost:3000/health
+
+# Test de l'endpoint info
+curl http://localhost:3000/info
+
+# Voir les logs du conteneur
+docker logs esme-app-test
+
+# Arreter et supprimer le conteneur apres tests
+docker stop esme-app-test
+docker rm esme-app-test
+```
+
+#### Screenshots:
+- [ ] Screenshot 1: Construction de l'image (docker build)
+- [ ] Screenshot 2: Liste des images (docker images)
+- [ ] Screenshot 3: Conteneur en cours d'execution (docker ps)
+- [ ] Screenshot 4: Test endpoint / dans le navigateur
+- [ ] Screenshot 5: Test endpoint /health (JSON response)
 
 ---
 
@@ -103,10 +161,10 @@ A completer...
 
 ## Progression globale
 
-- **Partie 1**: 3/6 points (taches completees)
+- **Partie 1**: 4/6 points (taches completees)
 - **Partie 2**: 0/8 points
 - **Partie 3**: 0/6 points
-- **Total technique**: 3/20 points
+- **Total technique**: 4/20 points
 
 ---
 
