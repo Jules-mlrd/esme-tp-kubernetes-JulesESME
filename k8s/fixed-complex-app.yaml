@@ -1,0 +1,192 @@
+# Application complexe corrigée - Tâche 3.3
+# Tous les problèmes ont été identifiés et corrigés
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fixed-config
+  namespace: esme-tp-julesmlrd
+data:
+  database_url: "postgres://user:secure-password@db-service:5432/app"
+  cache_enabled: "true"
+  log_level: "INFO"
+  max_connections: "100"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fixed-secret
+  namespace: esme-tp-julesmlrd
+type: Opaque
+data:
+  api-key: "YWJjZGVmZ2g="
+  database-password: "c2VjdXJlLXBhc3N3b3Jk"  # base64("secure-password")
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fixed-complex-app
+  namespace: esme-tp-julesmlrd
+  labels:
+    app: fixed-app
+    version: v1.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fixed-app
+      version: v1.0
+  template:
+    metadata:
+      labels:
+        app: fixed-app
+        version: v1.0
+    spec:
+      containers:
+      - name: web-app
+        image: nginx:1.20-alpine
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: fixed-config
+              key: database_url
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fixed-secret
+              key: api-key
+        - name: CACHE_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: fixed-config
+              key: cache_enabled
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+          readOnly: true
+        - name: secret-volume
+          mountPath: /etc/secrets
+          readOnly: true
+      - name: sidecar-logging
+        image: busybox:1.35
+        command: ["sh", "-c", "while true; do echo 'Logging...'; sleep 10; done"]
+        volumeMounts:
+        - name: log-volume
+          mountPath: /var/log
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: fixed-config
+          defaultMode: 0644
+      - name: secret-volume
+        secret:
+          secretName: fixed-secret
+          defaultMode: 0400
+      - name: log-volume
+        emptyDir:
+          sizeLimit: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fixed-complex-service
+  namespace: esme-tp-julesmlrd
+  labels:
+    app: fixed-service
+spec:
+  type: ClusterIP
+  selector:
+    app: fixed-app
+    version: v1.0
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: 443
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fixed-ingress
+  namespace: esme-tp-julesmlrd
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: fixed-app.esme.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fixed-complex-service
+            port:
+              number: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: fixed-hpa
+  namespace: esme-tp-julesmlrd
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: fixed-complex-app
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
