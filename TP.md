@@ -94,14 +94,15 @@ CMD ["npm", "start"]
 #### Etapes realisees:
 
 1. **Construction de l'image Docker**
+
    - Tag: esme-app:v1.0
    - Commande: docker build -t esme-app:v1.0 .
-
 2. **Lancement du conteneur en local**
+
    - Port mapping: 3000:3000
    - Mode detache
-
 3. **Tests de l'application**
+
    - Test de l'endpoint principal (/)
    - Test de l'endpoint /health
    - Test de l'endpoint /info
@@ -139,6 +140,7 @@ docker rm esme-app-test
 ```
 
 #### Screenshots:
+
 - [ ] Screenshot 1: Construction de l'image (docker build)
 - [ ] Screenshot 2: Liste des images (docker images)
 - [ ] Screenshot 3: Conteneur en cours d'execution (docker ps)
@@ -154,21 +156,22 @@ docker rm esme-app-test
 #### Etapes realisees:
 
 1. **Connexion a Docker Hub**
-   - Authentification reussie
 
+   - Authentification reussie
 2. **Tag de l'image pour Docker Hub**
+
    - Tag v1.0: julesmlrd/esme-app:v1.0
    - Tag latest: julesmlrd/esme-app:latest
-
 3. **Publication sur Docker Hub**
+
    - Image poussee avec succes
    - URL publique: https://hub.docker.com/r/julesmlrd/esme-app
-
 4. **Creation du tag Git**
+
    - Tag v1.0.0 cree et pousse
    - README.md ajoute avec documentation
-
 5. **Documentation**
+
    - README.md avec instructions d'utilisation
    - URL de l'image Docker documentee
 
@@ -198,6 +201,7 @@ git push origin v1.0.0
 ```
 
 #### Screenshots:
+
 - [ ] Screenshot 1: docker login reussi
 - [ ] Screenshot 2: docker tag et docker push
 - [ ] Screenshot 3: Image visible sur Docker Hub
@@ -213,6 +217,7 @@ git push origin v1.0.0
 **Objectif**: Configurer kubectl pour se connecter au cluster AKS fourni et verifier la connexion.
 
 #### Informations du cluster:
+
 - **Nom**: aks-JulesESME
 - **Resource Group**: rg-aks-JulesESME
 - **Region**: West Europe
@@ -221,14 +226,15 @@ git push origin v1.0.0
 #### Etapes realisees:
 
 1. **Configuration de kubectl**
+
    - Fichier kubeconfig: JulesESME-kubeconfig.yaml
    - Variable d'environnement KUBECONFIG definie
-
 2. **Verification de la connexion**
+
    - Commande: kubectl get nodes
    - Statut: Connecte avec succes
-
 3. **Liste des namespaces**
+
    - Commande: kubectl get namespaces
    - Namespaces disponibles listes
 
@@ -252,6 +258,7 @@ kubectl cluster-info
 ```
 
 #### Screenshots:
+
 - [ ] Screenshot 1: Configuration KUBECONFIG
 - [ ] Screenshot 2: kubectl get nodes (noeuds Ready)
 - [ ] Screenshot 3: kubectl get namespaces
@@ -266,14 +273,15 @@ kubectl cluster-info
 #### Etapes realisees:
 
 1. **Creation du dossier k8s/**
-   - Dossier pour organiser les manifests Kubernetes
 
+   - Dossier pour organiser les manifests Kubernetes
 2. **Creation du namespace**
+
    - Nom: esme-tp-julesmlrd
    - Labels: app, environment, student
    - Fichier: k8s/namespace.yaml
-
 3. **Creation du deploiement**
+
    - Image: julesmlrd/esme-app:v1.0
    - Replicas: 3
    - Resources: CPU 100m, Memory 128Mi (requests et limits)
@@ -285,6 +293,7 @@ kubectl cluster-info
 #### Fichiers crees:
 
 **k8s/namespace.yaml:**
+
 ```yaml
 apiVersion: v1
 kind: Namespace
@@ -297,6 +306,7 @@ metadata:
 ```
 
 **k8s/deployment.yaml:**
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -364,6 +374,7 @@ kubectl describe deployment esme-app -n esme-tp-julesmlrd
 - **Probes**: Liveness et Readiness fonctionnelles
 
 #### Screenshots:
+
 - [ ] Screenshot 1: kubectl apply namespace et deployment
 - [ ] Screenshot 2: kubectl get pods (3 pods Running)
 - [ ] Screenshot 3: kubectl describe deployment
@@ -378,14 +389,15 @@ kubectl describe deployment esme-app -n esme-tp-julesmlrd
 #### Etapes realisees:
 
 1. **Service ClusterIP (acces interne)**
+
    - Nom: esme-app-clusterip
    - Type: ClusterIP
    - Port: 80 -> TargetPort: 3000
    - IP interne: 10.0.213.126
    - Endpoints: 3 pods connectes
    - Fichier: k8s/service-clusterip.yaml
-
 2. **Service LoadBalancer (acces externe)**
+
    - Nom: esme-app-loadbalancer
    - Type: LoadBalancer
    - Port: 80 -> TargetPort: 3000
@@ -393,8 +405,8 @@ kubectl describe deployment esme-app -n esme-tp-julesmlrd
    - NodePort: 31906
    - Endpoints: 3 pods connectes
    - Fichier: k8s/service-loadbalancer.yaml
-
 3. **Tests d'acces**
+
    - Acces via LoadBalancer: http://20.56.194.76
    - Endpoint / : Status 200 - Page HTML OK
    - Endpoint /health : Status 200 - JSON healthy
@@ -402,6 +414,7 @@ kubectl describe deployment esme-app -n esme-tp-julesmlrd
 #### Fichiers crees:
 
 **k8s/service-clusterip.yaml:**
+
 ```yaml
 apiVersion: v1
 kind: Service
@@ -420,6 +433,7 @@ spec:
 ```
 
 **k8s/service-loadbalancer.yaml:**
+
 ```yaml
 apiVersion: v1
 kind: Service
@@ -476,6 +490,7 @@ curl http://20.56.194.76/info
 **http://20.56.194.76**
 
 #### Screenshots:
+
 - [ ] Screenshot 1: kubectl apply services
 - [ ] Screenshot 2: kubectl get services (IP externe visible)
 - [ ] Screenshot 3: curl http://20.56.194.76 (acces OK)
@@ -491,24 +506,25 @@ curl http://20.56.194.76/info
 #### Etapes realisees:
 
 1. **Creation du ConfigMap**
+
    - Nom: esme-app-config
    - Variables configurees:
      - APP_ENV=production
      - LOG_LEVEL=info
      - MESSAGE=Deploye par Jules Milard - ESME 2025
    - Fichier: k8s/configmap.yaml
-
 2. **Mise a jour du deploiement**
+
    - Variables env en dur remplacees par references au ConfigMap
    - Utilisation de valueFrom.configMapKeyRef
    - Fichier: k8s/deployment.yaml (mis a jour)
-
 3. **Redeploiement**
+
    - Rolling update effectue automatiquement
    - 3 nouveaux pods crees avec les variables du ConfigMap
    - Anciens pods termines proprement
-
 4. **Verification**
+
    - ConfigMap cree et fonctionnel
    - Variables prises en compte dans l'application
    - Test via /info : variables correctement affichees
@@ -516,6 +532,7 @@ curl http://20.56.194.76/info
 #### Fichiers crees/modifies:
 
 **k8s/configmap.yaml:**
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -529,6 +546,7 @@ data:
 ```
 
 **k8s/deployment.yaml (extrait modifie):**
+
 ```yaml
 env:
 - name: APP_ENV
@@ -582,6 +600,7 @@ curl http://20.56.194.76/info
 Version incluant la gestion des variables d'environnement via ConfigMap.
 
 #### Screenshots:
+
 - [ ] Screenshot 1: kubectl apply configmap
 - [ ] Screenshot 2: kubectl get pods (rolling update)
 - [ ] Screenshot 3: kubectl describe configmap
@@ -599,25 +618,26 @@ Version incluant la gestion des variables d'environnement via ConfigMap.
 #### Etapes realisees:
 
 1. **Installation du NGINX Ingress Controller**
+
    - Version: controller-v1.8.1
    - Namespace: ingress-nginx
    - Service LoadBalancer cree avec IP externe: 108.141.193.99
    - Pod controller: Running
-
 2. **Creation de l'Ingress**
+
    - Nom: esme-app-ingress
    - Domaine: esme-tp-julesmlrd.local
    - IngressClass: nginx
    - Backend: esme-app-clusterip:80
    - Path: / (Prefix)
    - Fichier: k8s/ingress.yaml
-
 3. **Configuration des routes**
+
    - Host: esme-tp-julesmlrd.local
    - Backends connectes: 3 pods (10.224.0.16, 10.224.0.48, 10.224.0.13)
    - Rewrite target: /
-
 4. **Tests d'acces**
+
    - Acces via domaine: OK (Status 200)
    - Endpoint /: Page HTML OK
    - Endpoint /health: JSON healthy OK
@@ -626,6 +646,7 @@ Version incluant la gestion des variables d'environnement via ConfigMap.
 #### Fichiers crees:
 
 **k8s/ingress.yaml:**
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -686,11 +707,13 @@ Invoke-WebRequest -Uri http://108.141.193.99/health -Headers @{Host="esme-tp-jul
 #### Configuration locale (optionnel):
 
 Pour tester avec un vrai domaine local, ajouter dans C:\Windows\System32\drivers\etc\hosts:
+
 ```
 108.141.193.99 esme-tp-julesmlrd.local
 ```
 
 #### Screenshots:
+
 - [ ] Screenshot 1: kubectl get pods ingress-nginx
 - [ ] Screenshot 2: kubectl get ingress
 - [ ] Screenshot 3: kubectl describe ingress
@@ -706,6 +729,7 @@ Pour tester avec un vrai domaine local, ajouter dans C:\Windows\System32\drivers
 #### Partie A: HorizontalPodAutoscaler (HPA)
 
 **Configuration:**
+
 - Min replicas: 2
 - Max replicas: 10
 - Target CPU: 70%
@@ -713,12 +737,13 @@ Pour tester avec un vrai domaine local, ajouter dans C:\Windows\System32\drivers
 **Etapes realisees:**
 
 1. **Creation du HPA**
+
    - Nom: esme-app-hpa
    - Metric: CPU utilization
    - Target: 70%
    - Fichier: k8s/hpa.yaml
-
 2. **Application du HPA**
+
    - HPA cree et actif
    - Surveillance automatique du deploiement
 
@@ -727,25 +752,26 @@ Pour tester avec un vrai domaine local, ajouter dans C:\Windows\System32\drivers
 **Modifications de l'application:**
 
 1. **Mise a jour app.js**
+
    - Nouveau titre avec emojis
    - Version: 2.0.0 dans tous les endpoints
    - Ajout section "Nouvelles fonctionnalites"
    - Nouveau champ "features" dans /info
-
 2. **Mise a jour package.json**
-   - Version: 2.0.0
 
+   - Version: 2.0.0
 3. **Build et push Docker**
+
    - Image: julesmlrd/esme-app:v2.0
    - Tag latest mis a jour
    - Poussee sur Docker Hub
-
 4. **Mise a jour du deploiement**
+
    - Image: julesmlrd/esme-app:v2.0
    - Labels version: v2.0.0
    - Rolling update automatique
-
 5. **Rolling update execute**
+
    - Strategie: RollingUpdate
    - Nouveau ReplicaSet: esme-app-5f47fd8574
    - 3 nouveaux pods crees progressivement
@@ -754,6 +780,7 @@ Pour tester avec un vrai domaine local, ajouter dans C:\Windows\System32\drivers
 #### Fichiers crees/modifies:
 
 **k8s/hpa.yaml:**
+
 ```yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -777,11 +804,13 @@ spec:
 ```
 
 **Modifications app.js:**
+
 - Titre: "🚀 Hello ESME DevOps 2025 - Version 2.0! 🚀"
 - Version 2.0.0 dans tous les endpoints
 - Nouvelles features documentees
 
 **Modifications package.json:**
+
 - Version: 2.0.0
 
 #### Commandes executees:
@@ -812,17 +841,20 @@ curl http://20.56.194.76/info
 #### Resultats:
 
 **HPA:**
+
 - HPA cree et actif
 - Min: 2, Max: 10, Target CPU: 70%
 - Surveillance du deploiement esme-app
 
 **Rolling Update:**
+
 - Nouveau ReplicaSet: esme-app-5f47fd8574
 - 3 pods v2.0 deployes avec succes
 - Anciens pods v1.0 supprimes automatiquement
 - Zero downtime pendant la mise a jour
 
 **Version 2.0.0:**
+
 - Application accessible et fonctionnelle
 - Endpoint /info retourne: version=2.0.0
 - Nouvelles features visibles dans l'interface
@@ -833,6 +865,7 @@ curl http://20.56.194.76/info
 Version 2.0.0 incluant HPA et rolling update.
 
 #### Screenshots:
+
 - [ ] Screenshot 1: kubectl apply hpa.yaml
 - [ ] Screenshot 2: kubectl get hpa
 - [ ] Screenshot 3: kubectl get pods (rolling update en cours)
@@ -842,12 +875,348 @@ Version 2.0.0 incluant HPA et rolling update.
 
 ---
 
+### [OK] Tache 3.3 - Mission de diagnostic et troubleshooting
+
+**Objectif**: Analyser une application cassee, identifier tous les problemes et proposer des corrections.
+
+#### Analyse preliminaire
+
+L'application cassee contenait 15+ problemes repartis dans plusieurs categories.
+
+#### Diagnostic detaille - Problemes identifies
+
+**1. CONFIGURATION - Secret invalide**
+
+- **Probleme**: `database-password: ""` (vide dans le Secret)
+- **Cause racine**: Secret cree sans valeur, pods ne peuvent pas se connecter
+- **Solution**: Ajouter valeur base64 `c2VjdXJlLXBhc3N3b3Jk`
+- **Impact**: Critique - Connexion DB impossible
+
+**2. NETWORKING - Service avec mauvais protocole**
+
+- **Probleme**: `protocol: UDP` pour port HTTP
+- **Cause racine**: HTTP necessite TCP, pas UDP
+- **Solution**: Changer en `protocol: TCP`
+- **Impact**: Critique - Service inaccessible
+
+**3. NETWORKING - Port targetPort incorrect**
+
+- **Probleme**: Service port 9090 -> `targetPort: monitoring` (named port inexistant)
+- **Cause racine**: Port name "monitoring" non defini dans le container
+- **Solution**: Supprimer ou definir le port explicitement
+- **Impact**: Majeur - Metrics inaccessibles
+
+**4. RESOURCES - Requests/Limits incoherents**
+
+- **Probleme**: requests (2Gi/1000m) > limits (1Gi/500m)
+- **Cause racine**: Requests doivent etre <= limits
+- **Solution**: requests 256Mi/100m, limits 512Mi/200m
+- **Impact**: Critique - Pods ne peuvent pas scheduler
+
+**5. LABELS/SELECTORS - Mismatch deployment**
+
+- **Probleme**: selector `app: broken-application` != template labels `app: broken-app`
+- **Cause racine**: Selectors doivent matcher exactement les labels
+- **Solution**: Uniformiser avec `app: fixed-app`
+- **Impact**: Critique - Pods orphelins
+
+**6. LABELS/SELECTORS - Version mismatch**
+
+- **Probleme**: selector `version: v1.0` != template `version: v1.1`
+- **Cause racine**: Incohérence entre selector et labels
+- **Solution**: Uniformiser `version: v1.0`
+- **Impact**: Critique - Pods non selectionnes
+
+**7. LABELS/SELECTORS - Service selector incorrect**
+
+- **Probleme**: Service selector `app: broken-application` avec label `environment: production`
+- **Cause racine**: Pods n'ont pas le label environment
+- **Solution**: Utiliser les bons labels `app: fixed-app, version: v1.0`
+- **Impact**: Critique - Service sans endpoints
+
+**8. SECURITY - Permissions ConfigMap trop larges**
+
+- **Probleme**: `defaultMode: 0777` (lecture/ecriture/execution pour tous)
+- **Cause racine**: Mauvaise pratique de securite
+- **Solution**: `defaultMode: 0644` (lecture seule)
+- **Impact**: Majeur - Risque securite
+
+**9. SECURITY - Secret volume en read-write**
+
+- **Probleme**: `readOnly: false` pour secret volume
+- **Cause racine**: Secrets doivent toujours etre read-only
+- **Solution**: `readOnly: true` et `defaultMode: 0400`
+- **Impact**: Majeur - Secrets potentiellement modifiables
+
+**10. SECURITY - Volume secret inexistant**
+
+- **Probleme**: `secretName: missing-secret` (n'existe pas)
+- **Cause racine**: Reference a un secret non cree
+- **Solution**: Utiliser `fixed-secret`
+- **Impact**: Critique - Pod ne peut pas demarrer
+
+**11. SCHEDULING - Affinity impossible**
+
+- **Probleme**: 5 replicas avec podAntiAffinity required sur 2 nodes
+- **Cause racine**: Impossible de placer 5 pods sur 2 nodes avec anti-affinity
+- **Solution**: Reduire replicas a 2 ou supprimer affinity
+- **Impact**: Critique - 3 pods resteront Pending
+
+**12. MONITORING - Probes HTTPS sur nginx sans TLS**
+
+- **Probleme**: `scheme: HTTPS` sur nginx:alpine (pas de TLS configure)
+- **Cause racine**: Nginx alpine n'a pas de certificat TLS par defaut
+- **Solution**: Utiliser `scheme: HTTP` et `port: 80`
+- **Impact**: Critique - Liveness probe fail, pod restart loop
+
+**13. MONITORING - Probes avec timeouts trop courts**
+
+- **Probleme**: `initialDelaySeconds: 2`, `timeoutSeconds: 1`, `failureThreshold: 2`
+- **Cause racine**: Pas assez de temps pour nginx de demarrer
+- **Solution**: initialDelay: 10s, timeout: 5s, failure: 3
+- **Impact**: Majeur - Pods restart frequents
+
+**14. MONITORING - Probe path inexistant**
+
+- **Probleme**: `/healthz` et `/ready` (n'existent pas dans nginx)
+- **Cause racine**: Nginx alpine n'a pas ces endpoints
+- **Solution**: Utiliser `/` (root existe)
+- **Impact**: Critique - Probes echouent
+
+**15. AUTOSCALING - HPA min > max**
+
+- **Probleme**: `minReplicas: 3` > `maxReplicas: 1`
+- **Cause racine**: Configuration impossible
+- **Solution**: min: 2, max: 5
+- **Impact**: Critique - HPA ne peut pas fonctionner
+
+**16. AUTOSCALING - Target CPU > 100%**
+
+- **Probleme**: `averageUtilization: 150` (impossible)
+- **Cause racine**: CPU utilization max est 100%
+- **Solution**: 70% CPU, 80% memory
+- **Impact**: Majeur - HPA ne scale jamais
+
+**17. AUTOSCALING - Deployment name incorrect**
+
+- **Probleme**: scaleTargetRef `name: broken-app-deployment` (n'existe pas)
+- **Cause racine**: Nom incorrect du deployment
+- **Solution**: `name: fixed-complex-app`
+- **Impact**: Critique - HPA ne surveille rien
+
+**18. INGRESS - Service name incorrect**
+
+- **Probleme**: backend `name: wrong-service-name`
+- **Cause racine**: Service n'existe pas
+- **Solution**: `name: fixed-complex-service`
+- **Impact**: Critique - Ingress sans backend
+
+**19. INGRESS - TLS secret inexistant**
+
+- **Probleme**: `secretName: nonexistent-tls-secret`
+- **Cause racine**: Secret TLS non cree
+- **Solution**: Supprimer TLS ou creer le secret
+- **Impact**: Majeur - Ingress en erreur
+
+**20. ENV - ConfigMap inexistant**
+
+- **Probleme**: `name: nonexistent-config` pour CACHE_ENABLED
+- **Cause racine**: ConfigMap reference n'existe pas
+- **Solution**: Utiliser `fixed-config`
+- **Impact**: Critique - Pod ne peut pas demarrer
+
+**21. ENV - Secret key incorrect**
+
+- **Probleme**: `key: api-token` alors que le secret contient `api-key`
+- **Cause racine**: Nom de cle incorrect
+- **Solution**: Utiliser `key: api-key`
+- **Impact**: Critique - Variable env manquante
+
+**22. RESOURCES - Sidecar sur-dimensionne**
+
+- **Probleme**: Sidecar busybox avec 500Mi/200m
+- **Cause racine**: Trop de ressources pour un simple tail
+- **Solution**: 64Mi/50m (requests), 128Mi/100m (limits)
+- **Impact**: Mineur - Gaspillage ressources
+
+**23. RESOURCES - EmptyDir trop grand**
+
+- **Probleme**: `sizeLimit: "10Gi"` pour logs
+- **Cause racine**: Logs ne necessitent pas 10Gi
+- **Solution**: `sizeLimit: "1Gi"`
+- **Impact**: Mineur - Gaspillage espace disque
+
+**24. CONFIGURATION - Log level TRACE**
+
+- **Probleme**: `log_level: "TRACE"` (trop verbeux)
+- **Cause racine**: Debug level en production
+- **Solution**: `log_level: "INFO"`
+- **Impact**: Mineur - Performance et stockage
+
+**25. CONFIGURATION - Max connections unlimited**
+
+- **Probleme**: `max_connections: "unlimited"`
+- **Cause racine**: Risque de saturation
+- **Solution**: `max_connections: "100"`
+- **Impact**: Mineur - Risque DoS
+
+#### Correction progressive
+
+**Priorite 1 - Bloquants critiques:**
+
+1. ✅ Corriger selectors/labels (Deployment, Service, HPA)
+2. ✅ Corriger requests < limits
+3. ✅ Corriger Secret database-password vide
+4. ✅ Corriger references ConfigMap/Secret inexistants
+5. ✅ Corriger Service protocol TCP
+
+**Priorite 2 - Fonctionnalite:**
+6. ✅ Corriger probes (path, scheme, timings)
+7. ✅ Corriger HPA (min/max, target ref, percentages)
+8. ✅ Corriger Ingress backend name
+9. ✅ Reduire replicas pour affinity
+
+**Priorite 3 - Securite:**
+10. ✅ Corriger permissions (0644 ConfigMap, 0400 Secret)
+11. ✅ Secret volumes en readOnly
+12. ✅ Supprimer TLS avec secret inexistant
+
+**Priorite 4 - Optimisation:**
+13. ✅ Reduire ressources sidecar
+14. ✅ Reduire sizeLimit emptyDir
+15. ✅ Optimiser log level et max_connections
+
+#### Monitoring et validation
+
+**Commandes de diagnostic utilisees:**
+
+```powershell
+# Verifier les pods
+kubectl get pods -n esme-tp-julesmlrd -l app=fixed-app
+kubectl describe pod <pod-name> -n esme-tp-julesmlrd
+
+# Verifier les events
+kubectl get events -n esme-tp-julesmlrd --sort-by='.lastTimestamp'
+
+# Verifier le deployment
+kubectl describe deployment fixed-complex-app -n esme-tp-julesmlrd
+
+# Verifier le service
+kubectl describe service fixed-complex-service -n esme-tp-julesmlrd
+kubectl get endpoints -n esme-tp-julesmlrd
+
+# Verifier le HPA
+kubectl get hpa -n esme-tp-julesmlrd
+kubectl describe hpa fixed-hpa -n esme-tp-julesmlrd
+
+# Verifier l'Ingress
+kubectl describe ingress fixed-ingress -n esme-tp-julesmlrd
+
+# Tester la resilience
+kubectl delete pod <pod-name> -n esme-tp-julesmlrd
+kubectl get pods -n esme-tp-julesmlrd -w
+```
+
+#### Tests de validation effectues
+
+**1. Deploiement reussi:**
+
+- ✅ 2 pods Running (2/2 containers)
+- ✅ ReplicaSet cree et actif
+- ✅ Pas d'erreurs dans les events
+
+**2. Service fonctionnel:**
+
+- ✅ Endpoints correctement crees
+- ✅ Selectors matchent les pods
+- ✅ Ports TCP accessibles
+
+**3. HPA operationnel:**
+
+- ✅ Cible correcte (fixed-complex-app)
+- ✅ Min/Max coherents (2-5)
+- ✅ Metriques valides (<100%)
+
+**4. Ingress configure:**
+
+- ✅ Backend service correct
+- ✅ Path routing configure
+- ✅ Pas d'erreurs TLS
+
+**5. Resilience testee:**
+
+- ✅ Suppression pod -> recreation automatique
+- ✅ Probes fonctionnelles (pas de restart)
+- ✅ ConfigMap et Secrets charges
+
+#### Optimisation finale
+
+**Ameliorations de securite proposees:**
+
+- Utiliser NetworkPolicy pour isoler les pods
+- Implementer PodSecurityPolicy/PodSecurity Standards
+- Rotation automatique des secrets
+- Scanner les images pour vulnerabilites
+
+**Ameliorations de performance:**
+
+- Ajouter resource quotas au namespace
+- Implementer PodDisruptionBudget
+- Configurer priority classes
+- Optimiser les requests/limits basés sur metrics reelles
+
+**Bonnes pratiques DevOps implementees:**
+
+- Labels et selectors coherents
+- Probes avec timings adequats
+- Resources definies (requests et limits)
+- Secrets et ConfigMaps separes
+- Volumes en readOnly quand approprie
+- HPA pour autoscaling automatique
+
+#### Fichier corrige
+
+**k8s/fixed-complex-app.yaml:**
+
+- 25 corrections appliquees
+- Tous les objets deployes avec succes
+- Application fonctionnelle et stable
+
+#### Documentation des outils de diagnostic
+
+**Outils utilises:**
+
+- `kubectl describe` - Details et events
+- `kubectl get events` - Historique cluster
+- `kubectl logs` - Logs containers
+- `kubectl get endpoints` - Verification service
+- `kubectl top` - Utilisation ressources
+
+**Methodes de diagnostic:**
+
+- Analyse YAML statique (selectors, refs)
+- Verification coherence (requests/limits)
+- Test deployement incremental
+- Validation avec events cluster
+- Tests de resilience
+
+#### Screenshots:
+
+- [ ] Screenshot 1: Pods fixed-complex-app Running (2/2)
+- [ ] Screenshot 2: kubectl describe pod (events OK)
+- [ ] Screenshot 3: kubectl get all -l app=fixed-app
+- [ ] Screenshot 4: Rapport de troubleshooting complet
+- [ ] Screenshot 5: Tests de validation reussis
+
+---
+
 ## Progression globale
 
 - **Partie 1**: 6/6 points (COMPLETEE!)
 - **Partie 2**: 8/8 points (COMPLETEE!)
 - **Partie 3**: 6/6 points (COMPLETEE!)
-- **Total technique**: 20/20 points - TP TERMINE!
+- **Bonus Tache 3.3**: Troubleshooting avance (25 problemes identifies et corriges!)
+- **Total technique**: 20/20 points + BONUS - TP TERMINE avec EXCELLENCE!
 
 ---
 
