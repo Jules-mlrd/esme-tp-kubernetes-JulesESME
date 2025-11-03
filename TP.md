@@ -371,6 +371,119 @@ kubectl describe deployment esme-app -n esme-tp-julesmlrd
 
 ---
 
+### [OK] Tache 2.3 - Services et exposition (2 points)
+
+**Objectif**: Creer deux services (ClusterIP et LoadBalancer) pour exposer l'application en interne et en externe.
+
+#### Etapes realisees:
+
+1. **Service ClusterIP (acces interne)**
+   - Nom: esme-app-clusterip
+   - Type: ClusterIP
+   - Port: 80 -> TargetPort: 3000
+   - IP interne: 10.0.213.126
+   - Endpoints: 3 pods connectes
+   - Fichier: k8s/service-clusterip.yaml
+
+2. **Service LoadBalancer (acces externe)**
+   - Nom: esme-app-loadbalancer
+   - Type: LoadBalancer
+   - Port: 80 -> TargetPort: 3000
+   - IP externe: 20.56.194.76
+   - NodePort: 31906
+   - Endpoints: 3 pods connectes
+   - Fichier: k8s/service-loadbalancer.yaml
+
+3. **Tests d'acces**
+   - Acces via LoadBalancer: http://20.56.194.76
+   - Endpoint / : Status 200 - Page HTML OK
+   - Endpoint /health : Status 200 - JSON healthy
+
+#### Fichiers crees:
+
+**k8s/service-clusterip.yaml:**
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: esme-app-clusterip
+  namespace: esme-tp-julesmlrd
+spec:
+  type: ClusterIP
+  selector:
+    app: esme-devops-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 3000
+```
+
+**k8s/service-loadbalancer.yaml:**
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: esme-app-loadbalancer
+  namespace: esme-tp-julesmlrd
+spec:
+  type: LoadBalancer
+  selector:
+    app: esme-devops-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 3000
+```
+
+#### Commandes executees:
+
+```powershell
+# Appliquer le service ClusterIP
+kubectl apply -f k8s/service-clusterip.yaml
+
+# Appliquer le service LoadBalancer
+kubectl apply -f k8s/service-loadbalancer.yaml
+
+# Lister les services
+kubectl get services -n esme-tp-julesmlrd
+
+# Details service ClusterIP
+kubectl describe service esme-app-clusterip -n esme-tp-julesmlrd
+
+# Details service LoadBalancer
+kubectl describe service esme-app-loadbalancer -n esme-tp-julesmlrd
+
+# Tester l'acces externe
+curl http://20.56.194.76
+curl http://20.56.194.76/health
+curl http://20.56.194.76/info
+```
+
+#### Resultats:
+
+- **ClusterIP**: 10.0.213.126 - Acces interne fonctionnel
+- **LoadBalancer**: 20.56.194.76 - Acces externe fonctionnel
+- **Endpoints**: 3 pods connectes aux 2 services
+- **Tests reussis**:
+  - GET / : 200 OK - Page HTML
+  - GET /health : 200 OK - {"status":"healthy"}
+  - GET /info : 200 OK - Informations systeme
+
+#### URL publique de l'application:
+
+**http://20.56.194.76**
+
+#### Screenshots:
+- [ ] Screenshot 1: kubectl apply services
+- [ ] Screenshot 2: kubectl get services (IP externe visible)
+- [ ] Screenshot 3: curl http://20.56.194.76 (acces OK)
+- [ ] Screenshot 4: Test dans navigateur
+- [ ] Screenshot 5: kubectl describe loadbalancer
+
+---
+
 ## Partie 3 - Architecture avancee et troubleshooting (6 points)
 
 A completer...
@@ -380,9 +493,9 @@ A completer...
 ## Progression globale
 
 - **Partie 1**: 6/6 points (COMPLETEE!)
-- **Partie 2**: 3/8 points (en cours)
+- **Partie 2**: 5/8 points (en cours)
 - **Partie 3**: 0/6 points
-- **Total technique**: 9/20 points
+- **Total technique**: 11/20 points
 
 ---
 
