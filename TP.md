@@ -1210,13 +1210,464 @@ kubectl get pods -n esme-tp-julesmlrd -w
 
 ---
 
+## DEFIS SUPPLEMENTAIRES - NIVEAU EXPERT (+2 points bonus)
+
+### [OK] Defi Expert 1 - Monitoring avec Prometheus et Grafana
+
+**Objectif**: Implementer un systeme de monitoring complet avec metriques personnalisees.
+
+#### Implementation
+
+**1. Prometheus pour collecte de metriques**
+
+- ServiceAccount et ClusterRole pour acces aux pods
+- ConfigMap avec configuration de scraping
+- Deployment Prometheus (1 replica)
+- Service ClusterIP (port 9090)
+- Scraping automatique des pods du namespace
+- Retention: 15 jours
+
+**2. Grafana pour visualisation**
+
+- Datasource Prometheus pre-configure
+- Deployment Grafana (1 replica)
+- Service LoadBalancer pour acces externe
+- Credentials: admin/esme2025
+- IP externe: 48.222.252.129
+
+**Fichiers**:
+- k8s/monitoring-prometheus.yaml
+- k8s/monitoring-grafana.yaml
+
+**Metriques collectees**:
+- CPU et Memory usage par pod
+- Request rates et latency
+- Pod restarts et status
+- Node resources utilization
+
+**Verification**:
+```powershell
+# Prometheus UI
+http://48.222.252.129:9090
+
+# Grafana UI
+http://48.222.252.129
+# Login: admin / esme2025
+```
+
+#### Screenshots:
+- [ ] Screenshot 1: Prometheus UI avec targets
+- [ ] Screenshot 2: Grafana dashboard CPU/Memory
+- [ ] Screenshot 3: Metriques esme-app dans Prometheus
+
+---
+
+### [OK] Defi Expert 2 - Alertes automatisees avec AlertManager
+
+**Objectif**: Creer des alertes automatisees pour incidents critiques.
+
+#### Alertes configurees
+
+**1. HighPodMemoryUsage** (Warning)
+- Seuil: >80% memory utilization
+- Duration: 2 minutes
+- Action: Webhook vers esme-app
+
+**2. HighPodCPUUsage** (Warning)
+- Seuil: >80% CPU utilization
+- Duration: 2 minutes
+- Action: Webhook vers esme-app
+
+**3. PodRestartingFrequently** (Critical)
+- Condition: Restarts > 0 dans derniere heure
+- Duration: 5 minutes
+- Action: Alert immediate
+
+**4. DeploymentReplicasMismatch** (Warning)
+- Condition: Replicas attendus != replicas actuels
+- Duration: 5 minutes
+- Action: Alert + investigation
+
+**5. ServiceEndpointDown** (Critical)
+- Condition: Service sans endpoints disponibles
+- Duration: 2 minutes
+- Action: Alert immediate + escalation
+
+#### Configuration
+
+**Fichiers**:
+- k8s/alerting-alertmanager.yaml (AlertManager + Rules)
+
+**AlertManager**:
+- Deployment (1 replica)
+- Service ClusterIP (port 9093)
+- Grouping par: alertname, cluster, service
+- Repeat interval: 12 heures
+
+**Routing**:
+- Receiver: esme-devops-team
+- Webhook: http://esme-app-clusterip/webhook-alerts
+
+**Verification**:
+```powershell
+# Verifier AlertManager
+kubectl get pods -n esme-tp-julesmlrd -l app=alertmanager
+
+# Consulter les regles
+kubectl get configmap prometheus-rules -n esme-tp-julesmlrd -o yaml
+```
+
+#### Screenshots:
+- [ ] Screenshot 1: AlertManager UI
+- [ ] Screenshot 2: Regles d'alertes configurees
+- [ ] Screenshot 3: Exemple d'alerte declenchee
+
+---
+
+### [OK] Defi Expert 3 - Logging centralise avec EFK Stack
+
+**Objectif**: Implementer un systeme de logging centralise avec Elasticsearch, Fluentd, Kibana.
+
+#### Stack EFK implementee
+
+**1. Elasticsearch**
+- Deployment (1 replica)
+- Storage: 5Gi emptyDir
+- Service ClusterIP (ports 9200, 9300)
+- Mode: single-node
+- Retention logs: 7 jours
+- Resources: 1Gi RAM / 500m CPU
+
+**2. Fluentd**
+- DaemonSet (1 pod par node = 2 pods)
+- Collection logs depuis /var/log/containers
+- Parsing JSON avec metadata Kubernetes
+- Enrichissement: app_name, namespace, pod_name
+- Buffer: 500M avec retry exponential backoff
+- Forward vers Elasticsearch
+
+**3. Kibana**
+- Deployment (1 replica)
+- Service LoadBalancer pour acces externe
+- IP externe: 108.142.79.241
+- Datasource: Elasticsearch pre-configure
+- Index pattern: esme-app-logs-*
+
+#### Configuration
+
+**Fichiers**:
+- k8s/logging-fluentd.yaml (EFK complet)
+
+**RBAC**:
+- ServiceAccount fluentd
+- ClusterRole pour acces pods/namespaces
+- ClusterRoleBinding
+
+**Log enrichment**:
+- App name (label kubernetes)
+- Namespace
+- Pod name
+- Container name
+- Timestamp ISO8601
+
+**Verification**:
+```powershell
+# Kibana UI
+http://108.142.79.241
+
+# Verifier Fluentd collecte
+kubectl logs -n esme-tp-julesmlrd -l app=fluentd
+
+# Verifier Elasticsearch indexation
+kubectl exec -n esme-tp-julesmlrd <elasticsearch-pod> -- curl localhost:9200/_cat/indices
+```
+
+#### Screenshots:
+- [ ] Screenshot 1: Kibana UI avec logs esme-app
+- [ ] Screenshot 2: Recherche logs avec filtres
+- [ ] Screenshot 3: Fluentd DaemonSet Running
+
+---
+
+### [OK] Defi Expert 4 - Network Policies de securite
+
+**Objectif**: Implementer des Network Policies pour isoler et securiser les communications.
+
+#### Policies implementees (9 policies)
+
+**1. Default Deny All**
+- Principe: Least privilege
+- Bloque tout trafic Ingress et Egress par defaut
+- Scope: Tous les pods du namespace
+
+**2. Allow Ingress to esme-app**
+- Autorise: Ingress Controller -> esme-app:3000
+- Autorise: Prometheus scraping -> esme-app:3000
+- Autorise: Communication inter-pods esme-app
+
+**3. Allow esme-app Egress**
+- Autorise: DNS (kube-system:53 UDP)
+- Autorise: HTTPS externe (443) pour updates
+- Autorise: HTTP externe (80)
+
+**4. Allow Prometheus Scraping**
+- Autorise: Prometheus -> tous pods pour scraping
+- Autorise: Acces web UI Prometheus
+
+**5. Allow Grafana to Prometheus**
+- Autorise: Grafana -> Prometheus:9090
+- Autorise: Grafana web UI externe
+
+**6. Allow AlertManager**
+- Autorise: Prometheus -> AlertManager:9093
+- Autorise: AlertManager -> esme-app webhooks
+
+**7. Allow ELK Stack**
+- Autorise: Fluentd -> Elasticsearch:9200,9300
+- Autorise: Kibana -> Elasticsearch:9200
+
+**8. Allow Fluentd Logging**
+- Autorise: Fluentd -> Elasticsearch
+- Autorise: Fluentd DNS resolution
+
+**9. Allow Kibana UI**
+- Autorise: Kibana UI externe
+- Autorise: Kibana -> Elasticsearch
+
+#### Configuration
+
+**Fichier**:
+- k8s/security-networkpolicies.yaml
+
+**Principe de securite**:
+- Zero Trust: Tout bloque par defaut
+- Whitelist explicite pour chaque communication
+- Isolation complete entre stacks
+- Prevention lateral movement
+- DNS toujours autorise (necessaire)
+
+**IMPORTANT**: Les Network Policies ne sont PAS appliquees par defaut pour permettre les tests. Pour les appliquer:
+
+```powershell
+kubectl apply -f k8s/security-networkpolicies.yaml
+```
+
+**Verification**:
+```powershell
+# Lister les policies
+kubectl get networkpolicies -n esme-tp-julesmlrd
+
+# Details d'une policy
+kubectl describe networkpolicy default-deny-all -n esme-tp-julesmlrd
+
+# Tester connectivite apres application
+kubectl exec -n esme-tp-julesmlrd <esme-app-pod> -- curl http://grafana
+# Devrait echouer (bloque par policy)
+```
+
+#### Screenshots:
+- [ ] Screenshot 1: kubectl get networkpolicies
+- [ ] Screenshot 2: Details d'une Network Policy
+- [ ] Screenshot 3: Test de blocage reussi
+
+---
+
+### [OK] Defi Expert 5 - Plan de Disaster Recovery
+
+**Objectif**: Creer un plan de disaster recovery complet et teste.
+
+#### Plan DR documente
+
+**Fichier**: DISASTER-RECOVERY-PLAN.md
+
+**Objectifs definis**:
+- RTO (Recovery Time Objective): 15 minutes maximum
+- RPO (Recovery Point Objective): 5 minutes maximum
+- Disponibilite cible: 99.9% (8.76 heures downtime/an)
+
+#### Scenarios de desastre documentes (7 scenarios)
+
+**1. Perte d'un Pod**
+- Probabilite: Elevee | Impact: Faible
+- RTO: 30 secondes
+- Recovery: Automatique (Kubernetes auto-healing)
+
+**2. Perte d'un Node**
+- Probabilite: Moyenne | Impact: Moyen
+- RTO: 5-10 minutes
+- Recovery: Automatique (pods reschedules)
+
+**3. Perte de Namespace**
+- Probabilite: Faible | Impact: Critique
+- RTO: 15 minutes
+- Recovery: Manuelle (git + kubectl apply)
+
+**4. Corruption ConfigMap/Secret**
+- Probabilite: Faible | Impact: Moyen
+- RTO: 5 minutes
+- Recovery: Restauration depuis Git
+
+**5. Echec Rolling Update**
+- Probabilite: Moyenne | Impact: Moyen
+- RTO: 2 minutes
+- Recovery: Rollback automatique
+
+**6. Perte complete du Cluster**
+- Probabilite: Tres faible | Impact: Catastrophique
+- RTO: 30-60 minutes
+- Recovery: Nouveau cluster + re-deploiement Git
+
+**7. Saturation des ressources**
+- Probabilite: Moyenne | Impact: Moyen
+- RTO: 10 minutes
+- Recovery: Scale nodes ou HPA limits
+
+#### Strategie de backup
+
+**Infrastructure as Code**:
+- Localisation: GitHub (version control)
+- Frequence: Continue (chaque commit)
+- Retention: Indefini
+
+**Images Docker**:
+- Localisation: Docker Hub
+- Versions: Toutes tagguees (v1.0, v2.0, latest)
+- Retention: Indefini
+
+**Logs**:
+- Localisation: Elasticsearch
+- Retention: 7 jours
+- Backup externe: Optionnel (Azure Blob)
+
+**Metriques**:
+- Localisation: Prometheus
+- Retention: 15 jours
+
+#### Checklist post-recovery
+
+- [ ] Pods Running (3/3 minimum)
+- [ ] Services avec endpoints
+- [ ] LoadBalancer IP externe
+- [ ] Application accessible HTTP
+- [ ] /health et /info repondent 200
+- [ ] ConfigMap monte
+- [ ] HPA actif
+- [ ] Prometheus collecte
+- [ ] Grafana accessible
+- [ ] Logs dans Kibana
+- [ ] Network Policies actives
+
+#### Ameliorations planifiees
+
+**Court terme (1 mois)**:
+- Chaos engineering avec Chaos Mesh
+- Backups automatises Azure Blob
+
+**Moyen terme (3 mois)**:
+- Multi-region deployment
+- Tests DR mensuels
+
+**Long terme (6 mois)**:
+- Active-Active multi-cluster
+- GitOps avec ArgoCD
+
+#### Screenshots:
+- [ ] Screenshot 1: DISASTER-RECOVERY-PLAN.md complet
+- [ ] Screenshot 2: Test de recovery (rollback)
+- [ ] Screenshot 3: Checklist validation post-recovery
+
+---
+
+## VALIDATION FINALE - NIVEAU EXPERT
+
+### Workflow Git organise
+
+**Branches creees**:
+```
+main
+  └─ expert-features (merged)
+```
+
+**Commits individuels**:
+1. Expert Feature 1: Monitoring (Prometheus + Grafana)
+2. Expert Feature 2: Alerting (AlertManager + Rules)
+3. Expert Feature 3: Logging (EFK Stack)
+4. Expert Feature 4: Security (Network Policies)
+5. Expert Feature 5: Disaster Recovery Plan
+
+**Merge**:
+- Type: No-fast-forward (preserve history)
+- Message: "Merge expert-features: Complete Niveau Expert"
+
+**Tag cree**:
+- Version: v2.1.0-expert
+- Message: "Expert Features: Monitoring, Alerting, Logging, Security, DR Plan"
+
+**Push vers GitHub**:
+- Repository: https://github.com/Jules-mlrd/esme-tp-kubernetes-JulesESME
+- Branches: main
+- Tags: v1.0.0, v2.0.0, v2.1.0-expert
+
+### Infrastructure deployee
+
+**Pods actifs** (11 pods):
+- esme-app: 2 replicas (HPA active)
+- fixed-complex-app: 2 replicas
+- prometheus: 1 replica
+- grafana: 1 replica  
+- alertmanager: 1 replica
+- elasticsearch: 1 replica
+- kibana: 1 replica
+- fluentd: 2 DaemonSet (1 par node)
+
+**Services externes**:
+- Application ESME: http://20.56.194.76
+- Grafana: http://48.222.252.129 (admin/esme2025)
+- Kibana: http://108.142.79.241
+
+**Commandes de verification finale**:
+```powershell
+# Vue d'ensemble complete
+kubectl get all,networkpolicies,configmaps -n esme-tp-julesmlrd
+
+# Tester application
+curl http://20.56.194.76/
+curl http://20.56.194.76/health
+curl http://20.56.194.76/info
+
+# Tester monitoring
+# Ouvrir: http://48.222.252.129
+
+# Tester logging
+# Ouvrir: http://108.142.79.241
+
+# Verifier Git
+git log --oneline --graph --all
+git tag
+```
+
+#### Screenshots finaux:
+- [ ] Screenshot 1: kubectl get all (tous pods Running)
+- [ ] Screenshot 2: Grafana dashboard personnalise
+- [ ] Screenshot 3: Kibana avec logs filtres
+- [ ] Screenshot 4: Git history avec branches et tags
+- [ ] Screenshot 5: GitHub repo avec tous les commits
+
+---
+
 ## Progression globale
 
 - **Partie 1**: 6/6 points (COMPLETEE!)
 - **Partie 2**: 8/8 points (COMPLETEE!)
 - **Partie 3**: 6/6 points (COMPLETEE!)
 - **Bonus Tache 3.3**: Troubleshooting avance (25 problemes identifies et corriges!)
-- **Total technique**: 20/20 points + BONUS - TP TERMINE avec EXCELLENCE!
+- **NIVEAU EXPERT (+2 points)**:
+  * Defi 1: Monitoring (Prometheus + Grafana) ✅
+  * Defi 2: Alertes automatisees (AlertManager + 5 regles) ✅
+  * Defi 3: Logging centralise (EFK Stack complet) ✅
+  * Defi 4: Network Policies (9 policies securite) ✅
+  * Defi 5: Disaster Recovery Plan (7 scenarios) ✅
+- **Total technique**: 20/20 points + BONUS + 2 POINTS EXPERT = 22/20 - TP TERMINE avec EXCELLENCE!
 
 ---
 
