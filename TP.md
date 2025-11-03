@@ -592,7 +592,110 @@ Version incluant la gestion des variables d'environnement via ConfigMap.
 
 ## Partie 3 - Architecture avancee et troubleshooting (6 points)
 
-A completer...
+### [OK] Tache 3.1 - Ingress et domaines (2 points)
+
+**Objectif**: Installer un Ingress Controller et configurer un Ingress pour exposer l'application sur un domaine personnalise.
+
+#### Etapes realisees:
+
+1. **Installation du NGINX Ingress Controller**
+   - Version: controller-v1.8.1
+   - Namespace: ingress-nginx
+   - Service LoadBalancer cree avec IP externe: 108.141.193.99
+   - Pod controller: Running
+
+2. **Creation de l'Ingress**
+   - Nom: esme-app-ingress
+   - Domaine: esme-tp-julesmlrd.local
+   - IngressClass: nginx
+   - Backend: esme-app-clusterip:80
+   - Path: / (Prefix)
+   - Fichier: k8s/ingress.yaml
+
+3. **Configuration des routes**
+   - Host: esme-tp-julesmlrd.local
+   - Backends connectes: 3 pods (10.224.0.16, 10.224.0.48, 10.224.0.13)
+   - Rewrite target: /
+
+4. **Tests d'acces**
+   - Acces via domaine: OK (Status 200)
+   - Endpoint /: Page HTML OK
+   - Endpoint /health: JSON healthy OK
+   - Load balancing entre les 3 pods fonctionnel
+
+#### Fichiers crees:
+
+**k8s/ingress.yaml:**
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: esme-app-ingress
+  namespace: esme-tp-julesmlrd
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: esme-tp-julesmlrd.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: esme-app-clusterip
+            port:
+              number: 80
+```
+
+#### Commandes executees:
+
+```powershell
+# Installer NGINX Ingress Controller
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
+
+# Verifier l'installation
+kubectl get pods -n ingress-nginx
+kubectl get service ingress-nginx-controller -n ingress-nginx
+
+# Creer l'Ingress
+kubectl apply -f k8s/ingress.yaml
+
+# Verifier l'Ingress
+kubectl get ingress -n esme-tp-julesmlrd
+kubectl describe ingress esme-app-ingress -n esme-tp-julesmlrd
+
+# Tester l'acces via le domaine
+Invoke-WebRequest -Uri http://108.141.193.99 -Headers @{Host="esme-tp-julesmlrd.local"}
+Invoke-WebRequest -Uri http://108.141.193.99/health -Headers @{Host="esme-tp-julesmlrd.local"}
+```
+
+#### Resultats:
+
+- **Ingress Controller**: NGINX installe et fonctionnel
+- **IP Ingress**: 108.141.193.99
+- **Ingress**: esme-app-ingress cree et actif
+- **Domaine**: esme-tp-julesmlrd.local configure
+- **Backends**: 3 pods connectes
+- **Tests reussis**:
+  - GET via domaine: 200 OK
+  - GET /health: 200 OK - {"status":"healthy"}
+  - Load balancing fonctionnel
+
+#### Configuration locale (optionnel):
+
+Pour tester avec un vrai domaine local, ajouter dans C:\Windows\System32\drivers\etc\hosts:
+```
+108.141.193.99 esme-tp-julesmlrd.local
+```
+
+#### Screenshots:
+- [ ] Screenshot 1: kubectl get pods ingress-nginx
+- [ ] Screenshot 2: kubectl get ingress
+- [ ] Screenshot 3: kubectl describe ingress
+- [ ] Screenshot 4: Test curl via domaine (200 OK)
+- [ ] Screenshot 5: Contenu du fichier ingress.yaml
 
 ---
 
@@ -600,8 +703,8 @@ A completer...
 
 - **Partie 1**: 6/6 points (COMPLETEE!)
 - **Partie 2**: 8/8 points (COMPLETEE!)
-- **Partie 3**: 0/6 points
-- **Total technique**: 14/20 points
+- **Partie 3**: 2/6 points (en cours)
+- **Total technique**: 16/20 points
 
 ---
 

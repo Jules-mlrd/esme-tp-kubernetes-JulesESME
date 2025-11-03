@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: esme-app-ingress
+  namespace: esme-tp-julesmlrd
+  labels:
+    app: esme-devops-app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: esme-tp-julesmlrd.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: esme-app-clusterip
+            port:
+              number: 80
+
